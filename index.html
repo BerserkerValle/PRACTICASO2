@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Estudiantes</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        /* Loader opcional mientras carga */
+        #loader {
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loader inicial -->
+    <div id="loader-screen" class="container text-center mt-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 text-secondary">Conectando con el servicio...</p>
+    </div>
+
+    <!-- Pantalla de Servicio Caído -->
+    <div id="service-down-screen" class="container text-center d-none" style="margin-top: 100px;">
+        <h1 class="display-4 text-danger">⚠️ El servicio está caído</h1>
+        <p class="lead mt-3">No pudimos conectar con el servidor o la base de datos.</p>
+        <p class="text-muted" id="error-details"></p>
+        <button class="btn btn-primary mt-4" onclick="location.reload()">Reintentar</button>
+    </div>
+
+    <div class="container d-none" id="main-content">
+        <h2 class="mb-4 text-center text-primary">Lista de Estudiantes</h2>
+        
+        <!-- Mensaje de error (oculto por defecto) -->
+        <div id="error-message" class="alert alert-danger d-none" role="alert">
+        </div>
+
+        <!-- Tabla de estudiantes -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover border">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Carrera</th>
+                    </tr>
+                </thead>
+                <tbody id="students-body">
+                    <!-- Los datos se insertarán aquí dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Lógica de Javascript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('students-body');
+            const errorMessage = document.getElementById('error-message');
+            const loaderScreen = document.getElementById('loader-screen');
+            const mainContent = document.getElementById('main-content');
+            const serviceDownScreen = document.getElementById('service-down-screen');
+            const errorDetails = document.getElementById('error-details');
+
+            const fetchEstudiantes = async () => {
+                try {
+                    // Petición a la API local
+                    const response = await fetch('http://localhost:3000/api/estudiantes');
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error en el servidor: ${response.status}`);
+                    }
+                    
+                    const estudiantes = await response.json();
+                    
+                    // Ocultar pantalla de carga inicial y mostrar la tabla de verdad
+                    loaderScreen.classList.add('d-none');
+                    mainContent.classList.remove('d-none');
+                    
+                    if (estudiantes.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No hay estudiantes registrados.</td></tr>';
+                        return;
+                    }
+
+                    // Renderizar las filas de la tabla
+                    estudiantes.forEach(estudiante => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${estudiante.id}</td>
+                            <td>${estudiante.nombre}</td>
+                            <td>${estudiante.carrera}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    // Ocultar spinner y contenido principal, mostrar servicio caído
+                    loaderScreen.classList.add('d-none');
+                    mainContent.classList.add('d-none');
+                    serviceDownScreen.classList.remove('d-none');
+                    errorDetails.textContent = `Detalles: ${error.message}`;
+                }
+            };
+
+            // Ejecutar la petición
+            fetchEstudiantes();
+        });
+    </script>
+
+</body>
+</html>

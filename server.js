@@ -5,8 +5,9 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const app = express();
-const PORT = 3000;
 
+// 1. MODIFICACIÓN AQUÍ: El puerto ahora es dinámico para Google Cloud Run
+const PORT = process.env.PORT || 8080;
 
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -34,8 +35,7 @@ app.get('/api/estudiantes', async (req, res) => {
     }
 });
 
-// Levantar el servidor
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
-    console.log(`🌐 Puedes ver la aplicación en http://localhost:${PORT}/index.html`);
+// 2. MODIFICACIÓN AQUÍ: Escuchamos en '0.0.0.0' (Obligatorio para Cloud Run)
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor ejecutándose en el puerto ${PORT}`);
 });
